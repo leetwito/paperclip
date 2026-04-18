@@ -39,6 +39,7 @@ import {
   ChevronRight,
   Code2,
   Eye,
+  EyeOff,
   FileCode2,
   FileText,
   Folder,
@@ -384,6 +385,7 @@ function SkillList({
   skills,
   selectedSkillId,
   skillFilter,
+  hidePaperclip,
   expandedSkillId,
   expandedDirs,
   selectedPaths,
@@ -395,6 +397,7 @@ function SkillList({
   skills: CompanySkillListItem[];
   selectedSkillId: string | null;
   skillFilter: string;
+  hidePaperclip: boolean;
   expandedSkillId: string | null;
   expandedDirs: Record<string, Set<string>>;
   selectedPaths: Record<string, string>;
@@ -404,6 +407,7 @@ function SkillList({
   onSelectPath: (skillId: string, path: string) => void;
 }) {
   const filteredSkills = skills.filter((skill) => {
+    if (hidePaperclip && !skill.editable) return false;
     const haystack = `${skill.name} ${skill.key} ${skill.slug} ${skill.sourceLabel ?? ""}`.toLowerCase();
     return haystack.includes(skillFilter.toLowerCase());
   });
@@ -761,6 +765,7 @@ export function CompanySkills() {
   const { setBreadcrumbs } = useBreadcrumbs();
   const { pushToast } = useToast();
   const [skillFilter, setSkillFilter] = useState("");
+  const [hidePaperclip, setHidePaperclip] = useState(true);
   const [source, setSource] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [emptySourceHelpOpen, setEmptySourceHelpOpen] = useState(false);
@@ -801,6 +806,19 @@ export function CompanySkills() {
     if (routeSkillId || !selectedSkillId) return;
     navigate(skillRoute(selectedSkillId), { replace: true });
   }, [navigate, routeSkillId, selectedSkillId]);
+
+  // When built-in skills are hidden, redirect away from any hidden skill
+  useEffect(() => {
+    if (!hidePaperclip || !skillsQuery.data) return;
+    const selected = skillsQuery.data.find((s) => s.id === selectedSkillId);
+    if (!selected || selected.editable) return; // visible or not found — nothing to do
+    const firstVisible = skillsQuery.data.find((s) => s.editable);
+    if (firstVisible) {
+      navigate(skillRoute(firstVisible.id), { replace: true });
+    } else {
+      navigate("/skills", { replace: true });
+    }
+  }, [hidePaperclip, selectedSkillId, skillsQuery.data, navigate]);
 
   const detailQuery = useQuery({
     queryKey: queryKeys.companySkills.detail(selectedCompanyId ?? "", selectedSkillId ?? ""),
@@ -1179,6 +1197,22 @@ export function CompanySkills() {
                 </p>
               </div>
               <div className="flex items-center gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setHidePaperclip((v) => !v)}
+                      className={cn(hidePaperclip && "text-foreground bg-accent")}
+                      aria-label={hidePaperclip ? "Show built-in skills" : "Hide built-in skills"}
+                    >
+                      {hidePaperclip ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {hidePaperclip ? "Show built-in skills" : "Hide built-in skills"}
+                  </TooltipContent>
+                </Tooltip>
                 <Button
                   variant="ghost"
                   size="icon-sm"
@@ -1244,6 +1278,7 @@ export function CompanySkills() {
               skills={skillsQuery.data ?? []}
               selectedSkillId={selectedSkillId}
               skillFilter={skillFilter}
+              hidePaperclip={hidePaperclip}
               expandedSkillId={expandedSkillId}
               expandedDirs={expandedDirs}
               selectedPaths={selectedSkillId ? { [selectedSkillId]: selectedPath } : {}}

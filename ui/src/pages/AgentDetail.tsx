@@ -2756,17 +2756,6 @@ function AgentSkillsTab({
                   </section>
                 )}
 
-                {requiredSkillRows.length > 0 && (
-                  <section className="border-y border-border">
-                    <div className="border-b border-border bg-muted/40 px-3 py-2">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Required by Paperclip
-                      </span>
-                    </div>
-                    {requiredSkillRows.map(renderSkillRow)}
-                  </section>
-                )}
-
                 {unmanagedSkillRows.length > 0 && (
                   <section className="border-y border-border">
                     <div
@@ -2777,7 +2766,7 @@ function AgentSkillsTab({
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setUnmanagedOpen((v) => !v); } }}
                     >
                       <span className="text-xs font-medium text-muted-foreground">
-                        ({unmanagedSkillRows.length}) User-installed skills, not managed by Paperclip
+                        ({unmanagedSkillRows.length}) User-installed skills
                       </span>
                       {unmanagedOpen ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
                     </div>
