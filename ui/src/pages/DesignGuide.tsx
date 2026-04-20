@@ -4,6 +4,7 @@ import {
   Bot,
   Check,
   ChevronDown,
+  ChevronRight,
   CircleDot,
   Command as CommandIcon,
   DollarSign,
@@ -123,6 +124,7 @@ import { FilterBar, type FilterValue } from "@/components/FilterBar";
 import { InlineEditor } from "@/components/InlineEditor";
 import { PageSkeleton } from "@/components/PageSkeleton";
 import { Identity } from "@/components/Identity";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /*  Section wrapper                                                    */
@@ -178,6 +180,7 @@ export function DesignGuide() {
   const [selectValue, setSelectValue] = useState("in_progress");
   const [menuChecked, setMenuChecked] = useState(true);
   const [collapsibleOpen, setCollapsibleOpen] = useState(false);
+  const [sectionCollapsibleOpen, setSectionCollapsibleOpen] = useState(true);
   const [inlineText, setInlineText] = useState("Click to edit this text");
   const [inlineTitle, setInlineTitle] = useState("Editable Title");
   const [inlineDesc, setInlineDesc] = useState(
@@ -629,19 +632,58 @@ export function DesignGuide() {
       {/*  COLLAPSIBLE                                                  */}
       {/* ============================================================ */}
       <Section title="Collapsible">
-        <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className="space-y-2">
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm">
-              {collapsibleOpen ? "Hide" : "Show"} advanced filters
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="rounded-md border border-border p-3">
-            <div className="space-y-2">
-              <Label htmlFor="owner-filter">Owner</Label>
-              <Input id="owner-filter" placeholder="Filter by agent name" />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+        <SubSection title="Button trigger">
+          <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className="space-y-2">
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" size="sm">
+                {collapsibleOpen ? "Hide" : "Show"} advanced filters
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="rounded-md border border-border p-3">
+              <div className="space-y-2">
+                <Label htmlFor="owner-filter">Owner</Label>
+                <Input id="owner-filter" placeholder="Filter by agent name" />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </SubSection>
+
+        <SubSection title="Dashboard section (chevron + count)">
+          <p className="text-sm text-muted-foreground">
+            Pattern for major dashboard regions (e.g. the Agents panel) — a section header
+            that uses the standard muted uppercase typography, with a rotating chevron and an
+            optional count badge so users can see how much content is hidden when collapsed.
+          </p>
+          <Collapsible open={sectionCollapsibleOpen} onOpenChange={setSectionCollapsibleOpen}>
+            <CollapsibleTrigger
+              className="group mb-3 flex w-full items-center gap-1.5 text-left"
+              aria-label={sectionCollapsibleOpen ? "Collapse section" : "Expand section"}
+            >
+              <ChevronRight
+                className={cn(
+                  "h-3.5 w-3.5 text-muted-foreground transition-transform",
+                  sectionCollapsibleOpen && "rotate-90",
+                )}
+              />
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
+                Agents
+              </h3>
+              <span className="ml-1 text-xs text-muted-foreground">4</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-border bg-background/70 p-3 text-xs text-muted-foreground"
+                  >
+                    Agent card #{i + 1}
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </SubSection>
       </Section>
 
       {/* ============================================================ */}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
 import type { Issue } from "@paperclipai/shared";
@@ -7,10 +7,17 @@ import type { TranscriptEntry } from "../adapters";
 import { issuesApi } from "../api/issues";
 import { queryKeys } from "../lib/queryKeys";
 import { cn, relativeTime } from "../lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ChevronRight, ExternalLink } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Identity } from "./Identity";
 import { RunChatSurface } from "./RunChatSurface";
 import { useLiveRunTranscripts } from "./transcript/useLiveRunTranscripts";
+
+const AGENTS_PANEL_OPEN_STORAGE_KEY = "paperclip.dashboard.agentsPanelOpen";
 
 const MIN_DASHBOARD_RUNS = 4;
 
@@ -23,6 +30,17 @@ interface ActiveAgentsPanelProps {
 }
 
 export function ActiveAgentsPanel({ companyId }: ActiveAgentsPanelProps) {
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const stored = window.localStorage.getItem(AGENTS_PANEL_OPEN_STORAGE_KEY);
+    return stored === null ? true : stored === "true";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(AGENTS_PANEL_OPEN_STORAGE_KEY, String(open));
+  }, [open]);
+
   const { data: liveRuns } = useQuery({
     queryKey: [...queryKeys.liveRuns(companyId), "dashboard"],
     queryFn: () => heartbeatsApi.liveRunsForCompany(companyId, MIN_DASHBOARD_RUNS),
@@ -50,30 +68,46 @@ export function ActiveAgentsPanel({ companyId }: ActiveAgentsPanelProps) {
   });
 
   return (
-    <div>
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Agents
-      </h3>
-      {runs.length === 0 ? (
-        <div className="rounded-xl border border-border p-4">
-          <p className="text-sm text-muted-foreground">No recent agent runs.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
-          {runs.map((run) => (
-            <AgentRunCard
-              key={run.id}
-              companyId={companyId}
-              run={run}
-              issue={run.issueId ? issueById.get(run.issueId) : undefined}
-              transcript={transcriptByRun.get(run.id) ?? []}
-              hasOutput={hasOutputForRun(run.id)}
-              isActive={isRunActive(run)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger
+        className="group mb-3 flex w-full items-center gap-1.5 text-left"
+        aria-label={open ? "Collapse agents section" : "Expand agents section"}
+      >
+        <ChevronRight
+          className={cn(
+            "h-3.5 w-3.5 text-muted-foreground transition-transform",
+            open && "rotate-90",
+          )}
+        />
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground group-hover:text-foreground transition-colors">
+          Agents
+        </h3>
+        {runs.length > 0 && (
+          <span className="ml-1 text-xs text-muted-foreground">{runs.length}</span>
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        {runs.length === 0 ? (
+          <div className="rounded-xl border border-border p-4">
+            <p className="text-sm text-muted-foreground">No recent agent runs.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+            {runs.map((run) => (
+              <AgentRunCard
+                key={run.id}
+                companyId={companyId}
+                run={run}
+                issue={run.issueId ? issueById.get(run.issueId) : undefined}
+                transcript={transcriptByRun.get(run.id) ?? []}
+                hasOutput={hasOutputForRun(run.id)}
+                isActive={isRunActive(run)}
+              />
+            ))}
+          </div>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
