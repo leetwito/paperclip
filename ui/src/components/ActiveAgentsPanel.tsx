@@ -18,6 +18,7 @@ import { RunChatSurface } from "./RunChatSurface";
 import { useLiveRunTranscripts } from "./transcript/useLiveRunTranscripts";
 
 const AGENTS_PANEL_OPEN_STORAGE_KEY = "paperclip.dashboard.agentsPanelOpen";
+const AGENTS_PANEL_AUTO_COLLAPSE_THRESHOLD = 8;
 
 const MIN_DASHBOARD_RUNS = 4;
 
@@ -30,21 +31,29 @@ interface ActiveAgentsPanelProps {
 }
 
 export function ActiveAgentsPanel({ companyId }: ActiveAgentsPanelProps) {
-  const [open, setOpen] = useState<boolean>(() => {
+  const [open, setOpen] = useState<boolean | null>(() => {
     if (typeof window === "undefined") return true;
     const stored = window.localStorage.getItem(AGENTS_PANEL_OPEN_STORAGE_KEY);
-    return stored === null ? true : stored === "true";
+    return stored === null ? null : stored === "true";
   });
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(AGENTS_PANEL_OPEN_STORAGE_KEY, String(open));
-  }, [open]);
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(AGENTS_PANEL_OPEN_STORAGE_KEY, String(next));
+    }
+  };
 
   const { data: liveRuns } = useQuery({
     queryKey: [...queryKeys.liveRuns(companyId), "dashboard"],
     queryFn: () => heartbeatsApi.liveRunsForCompany(companyId, MIN_DASHBOARD_RUNS),
   });
+
+  useEffect(() => {
+    if (open !== null) return;
+    if (!liveRuns) return;
+    setOpen(liveRuns.length <= AGENTS_PANEL_AUTO_COLLAPSE_THRESHOLD);
+  }, [liveRuns, open]);
 
   const runs = liveRuns ?? [];
   const { data: issues } = useQuery({
@@ -67,16 +76,18 @@ export function ActiveAgentsPanel({ companyId }: ActiveAgentsPanelProps) {
     maxChunksPerRun: 120,
   });
 
+  const isOpen = open ?? true;
+
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={isOpen} onOpenChange={handleOpenChange}>
       <CollapsibleTrigger
         className="group mb-3 flex w-full items-center gap-1.5 text-left"
-        aria-label={open ? "Collapse agents section" : "Expand agents section"}
+        aria-label={isOpen ? "Collapse agents section" : "Expand agents section"}
       >
         <ChevronRight
           className={cn(
             "h-3.5 w-3.5 text-muted-foreground transition-transform",
-            open && "rotate-90",
+            isOpen && "rotate-90",
           )}
         />
         <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground group-hover:text-foreground transition-colors">
