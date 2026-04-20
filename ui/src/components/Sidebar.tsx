@@ -50,15 +50,38 @@ export function Sidebar() {
     <aside className="w-60 h-full min-h-0 border-r border-border bg-background flex flex-col">
       {/* Top bar: Company name (bold) + Search — aligned with top sections (no visible border) */}
       <div className="flex items-center gap-1 px-3 h-12 shrink-0">
-        {selectedCompany?.brandColor && (
-          <div
-            className="w-4 h-4 rounded-sm shrink-0 ml-1"
-            style={{ backgroundColor: selectedCompany.brandColor }}
-          />
-        )}
-        <span className="flex-1 text-sm font-bold text-foreground truncate pl-1">
-          {selectedCompany?.name ?? "Select company"}
-        </span>
+        {(() => {
+          const alias = selectedCompany?.name === "ClaimOz_Company"
+            ? { displayName: "ClaimOz", logo: "/claimoz-32.png" }
+            : null;
+          if (alias) {
+            return (
+              <>
+                <img
+                  src={alias.logo}
+                  alt=""
+                  className="h-5 w-5 shrink-0 rounded-sm object-contain ml-1"
+                />
+                <span className="flex-1 text-sm font-bold text-foreground truncate pl-1">
+                  {alias.displayName}
+                </span>
+              </>
+            );
+          }
+          return (
+            <>
+              {selectedCompany?.brandColor && (
+                <div
+                  className="w-4 h-4 rounded-sm shrink-0 ml-1"
+                  style={{ backgroundColor: selectedCompany.brandColor }}
+                />
+              )}
+              <span className="flex-1 text-sm font-bold text-foreground truncate pl-1">
+                {selectedCompany?.name ?? "Select company"}
+              </span>
+            </>
+          );
+        })()}
         <Button
           variant="ghost"
           size="icon-sm"
