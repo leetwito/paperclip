@@ -52,6 +52,9 @@ export const AGENT_ROLES = [
 ] as const;
 export type AgentRole = (typeof AGENT_ROLES)[number];
 
+export const AGENT_KINDS = ["ai", "human"] as const;
+export type AgentKind = (typeof AGENT_KINDS)[number];
+
 export const AGENT_ROLE_LABELS: Record<AgentRole, string> = {
   ceo: "CEO",
   cto: "CTO",
