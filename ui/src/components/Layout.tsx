@@ -350,7 +350,7 @@ export function Layout() {
                   className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium transition-colors text-foreground/80 hover:bg-accent/50 hover:text-foreground flex-1 min-w-0"
                 >
                   <BookOpen className="h-4 w-4 shrink-0" />
-                  <span className="truncate">Documentation</span>
+                  <span className="truncate">Docs</span>
                 </a>
                 {health?.version && (
                   <Tooltip>
@@ -388,16 +388,14 @@ export function Layout() {
             </div>
           </div>
         ) : (
-          <div className="flex h-full flex-col shrink-0">
+          <div
+            className={cn(
+              "flex h-full flex-col shrink-0 overflow-hidden transition-[width] duration-100 ease-out",
+              sidebarOpen ? "w-60" : "w-0"
+            )}
+          >
             <div className="flex flex-1 min-h-0">
-              <div
-                className={cn(
-                  "overflow-hidden transition-[width] duration-100 ease-out",
-                  sidebarOpen ? "w-60" : "w-0"
-                )}
-              >
-                {isInstanceSettingsRoute ? <InstanceSidebar /> : <Sidebar />}
-              </div>
+              {isInstanceSettingsRoute ? <InstanceSidebar /> : <Sidebar />}
             </div>
             <div className="border-t border-r border-border px-3 py-2">
               <div className="flex items-center gap-1">
@@ -408,7 +406,7 @@ export function Layout() {
                   className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium transition-colors text-foreground/80 hover:bg-accent/50 hover:text-foreground flex-1 min-w-0"
                 >
                   <BookOpen className="h-4 w-4 shrink-0" />
-                  <span className="truncate">Documentation</span>
+                  <span className="truncate">Docs</span>
                 </a>
                 {health?.version && (
                   <Tooltip>
