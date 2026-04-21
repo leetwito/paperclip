@@ -964,7 +964,9 @@ export function agentRoutes(db: Db) {
   router.get("/companies/:companyId/agents", async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
-    const result = await svc.list(companyId);
+    const kindRaw = req.query.kind;
+    const kind = kindRaw === "ai" || kindRaw === "human" ? kindRaw : undefined;
+    const result = await svc.list(companyId, { kind });
     const canReadConfigs = await actorCanReadConfigurationsForCompany(req, companyId);
     if (canReadConfigs || req.actor.type === "board") {
       res.json(result);
