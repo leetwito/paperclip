@@ -3684,6 +3684,7 @@ export function heartbeatService(db: Db) {
         if (
           !deferredAgent ||
           deferredAgent.companyId !== issue.companyId ||
+          deferredAgent.kind === "human" ||
           deferredAgent.status === "paused" ||
           deferredAgent.status === "terminated" ||
           deferredAgent.status === "pending_approval"
@@ -3871,6 +3872,14 @@ export function heartbeatService(db: Db) {
       agent.status === "pending_approval"
     ) {
       throw conflict("Agent is not invokable in its current state", { status: agent.status });
+    }
+
+    if (agent.kind === "human") {
+      // Human agents never spawn runs — the scheduler and on-demand wake paths
+      // must both refuse, even if someone manually flipped the agent to idle.
+      throw conflict("Agent kind=human cannot be scheduled to run", {
+        kind: agent.kind,
+      });
     }
 
     const policy = parseHeartbeatPolicy(agent);
@@ -4631,6 +4640,7 @@ export function heartbeatService(db: Db) {
       let skipped = 0;
 
       for (const agent of allAgents) {
+        if (agent.kind === "human") continue;
         if (agent.status === "paused" || agent.status === "terminated" || agent.status === "pending_approval") continue;
         const policy = parseHeartbeatPolicy(agent);
         if (!policy.enabled || policy.intervalSec <= 0) continue;
