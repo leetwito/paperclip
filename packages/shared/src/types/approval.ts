@@ -6,6 +6,7 @@ export interface Approval {
   type: ApprovalType;
   requestedByAgentId: string | null;
   requestedByUserId: string | null;
+  assigneeAgentId: string;
   status: ApprovalStatus;
   payload: Record<string, unknown>;
   decisionNote: string | null;

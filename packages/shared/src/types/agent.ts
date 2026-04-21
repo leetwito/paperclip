@@ -3,6 +3,7 @@ import type {
   PauseReason,
   AgentRole,
   AgentStatus,
+  AgentKind,
 } from "../constants.js";
 import type {
   CompanyMembership,
@@ -65,6 +66,7 @@ export interface Agent {
   name: string;
   urlKey: string;
   role: AgentRole;
+  kind: AgentKind;
   title: string | null;
   icon: string | null;
   status: AgentStatus;
