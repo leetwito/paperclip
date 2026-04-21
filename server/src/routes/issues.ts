@@ -1934,6 +1934,12 @@ export function issueRoutes(
       return;
     }
 
+    const targetAgent = await agentsSvc.getById(req.body.agentId);
+    if (targetAgent?.kind === "human") {
+      res.status(422).json({ error: "Human agents cannot check out issues." });
+      return;
+    }
+
     const closedExecutionWorkspace = await getClosedIssueExecutionWorkspace(issue);
     if (closedExecutionWorkspace) {
       respondClosedIssueExecutionWorkspace(res, closedExecutionWorkspace);
