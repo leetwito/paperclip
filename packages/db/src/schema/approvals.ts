@@ -10,6 +10,7 @@ export const approvals = pgTable(
     type: text("type").notNull(),
     requestedByAgentId: uuid("requested_by_agent_id").references(() => agents.id),
     requestedByUserId: text("requested_by_user_id"),
+    assigneeAgentId: uuid("assignee_agent_id").notNull().references(() => agents.id),
     status: text("status").notNull().default("pending"),
     payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
     decisionNote: text("decision_note"),
@@ -23,6 +24,11 @@ export const approvals = pgTable(
       table.companyId,
       table.status,
       table.type,
+    ),
+    companyAssigneeStatusIdx: index("approvals_company_assignee_status_idx").on(
+      table.companyId,
+      table.assigneeAgentId,
+      table.status,
     ),
   }),
 );
