@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agents,
@@ -376,20 +376,50 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
       windowEnd: end,
     });
 
-    const approval = thresholdType === "hard"
-      ? await db
-        .insert(approvals)
-        .values({
-          companyId: policy.companyId,
-          type: "budget_override_required",
-          requestedByUserId: null,
-          requestedByAgentId: null,
-          status: "pending",
-          payload,
-        })
-        .returning()
-        .then((rows) => rows[0] ?? null)
-      : null;
+    let approval: typeof approvals.$inferSelect | null = null;
+    if (thresholdType === "hard") {
+      const ceoRow = await db
+        .select({ id: agents.id })
+        .from(agents)
+        .where(
+          and(
+            eq(agents.companyId, policy.companyId),
+            eq(agents.role, "ceo"),
+            ne(agents.status, "terminated"),
+          ),
+        )
+        .orderBy(asc(agents.createdAt))
+        .limit(1)
+        .then((rows) => rows[0] ?? null);
+      let assigneeAgentId: string | null = ceoRow?.id ?? null;
+      if (!assigneeAgentId) {
+        const fallbackRow = await db
+          .select({ id: agents.id })
+          .from(agents)
+          .where(
+            and(eq(agents.companyId, policy.companyId), ne(agents.status, "terminated")),
+          )
+          .orderBy(asc(agents.createdAt))
+          .limit(1)
+          .then((rows) => rows[0] ?? null);
+        assigneeAgentId = fallbackRow?.id ?? null;
+      }
+      if (assigneeAgentId) {
+        approval = await db
+          .insert(approvals)
+          .values({
+            companyId: policy.companyId,
+            type: "budget_override_required",
+            requestedByUserId: null,
+            requestedByAgentId: null,
+            assigneeAgentId,
+            status: "pending",
+            payload,
+          })
+          .returning()
+          .then((rows) => rows[0] ?? null);
+      }
+    }
 
     return db
       .insert(budgetIncidents)

@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { approvalComments, approvals } from "@paperclipai/db";
+import { agents, approvalComments, approvals } from "@paperclipai/db";
 import { notFound, unprocessable } from "../errors.js";
 import { redactCurrentUserText } from "../log-redaction.js";
 import { agentService } from "./agents.js";
@@ -92,12 +92,35 @@ export function approvalService(db: Db) {
         .where(eq(approvals.id, id))
         .then((rows) => rows[0] ?? null),
 
-    create: (companyId: string, data: Omit<typeof approvals.$inferInsert, "companyId">) =>
-      db
+    create: async (companyId: string, data: Omit<typeof approvals.$inferInsert, "companyId" | "assigneeAgentId"> & { assigneeAgentId?: string | null }) => {
+      let assigneeAgentId = data.assigneeAgentId ?? null;
+      if (!assigneeAgentId) {
+        assigneeAgentId = await db
+          .select({ id: agents.id })
+          .from(agents)
+          .where(and(eq(agents.companyId, companyId), eq(agents.role, "ceo")))
+          .orderBy(asc(agents.createdAt))
+          .limit(1)
+          .then((rows) => rows[0]?.id ?? null);
+      }
+      if (!assigneeAgentId) {
+        assigneeAgentId = await db
+          .select({ id: agents.id })
+          .from(agents)
+          .where(eq(agents.companyId, companyId))
+          .orderBy(asc(agents.createdAt))
+          .limit(1)
+          .then((rows) => rows[0]?.id ?? null);
+      }
+      if (!assigneeAgentId) {
+        throw new Error("Cannot create approval: company has no agents to assign it to");
+      }
+      return db
         .insert(approvals)
-        .values({ ...data, companyId })
+        .values({ ...data, companyId, assigneeAgentId })
         .returning()
-        .then((rows) => rows[0]),
+        .then((rows) => rows[0]);
+    },
 
     approve: async (id: string, decidedByUserId: string, decisionNote?: string | null) => {
       const { approval: updated, applied } = await resolveApproval(

@@ -7,6 +7,7 @@ const mockAgentService = vi.hoisted(() => ({
   update: vi.fn(),
   create: vi.fn(),
   resolveByReference: vi.fn(),
+  findCEO: vi.fn(),
 }));
 
 const mockAccessService = vi.hoisted(() => ({
@@ -202,6 +203,10 @@ describe("agent skill routes", () => {
       budgetMonthlyCents: Number(input.budgetMonthlyCents ?? 0),
       permissions: null,
     }));
+    mockAgentService.findCEO.mockResolvedValue({
+      id: "22222222-2222-4222-8222-222222222222",
+      role: "ceo",
+    });
     mockApprovalService.create.mockImplementation(async (_companyId: string, input: Record<string, unknown>) => ({
       id: "approval-1",
       companyId: "company-1",

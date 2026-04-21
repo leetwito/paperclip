@@ -11,14 +11,33 @@ type SelectResult = unknown[];
 
 function createDbStub(selectResults: SelectResult[]) {
   const pendingSelects = [...selectResults];
-  const selectWhere = vi.fn(async () => pendingSelects.shift() ?? []);
-  const selectThen = vi.fn((resolve: (value: unknown[]) => unknown) => Promise.resolve(resolve(pendingSelects.shift() ?? [])));
-  const selectOrderBy = vi.fn(async () => pendingSelects.shift() ?? []);
-  const selectFrom = vi.fn(() => ({
-    where: selectWhere,
-    then: selectThen,
-    orderBy: selectOrderBy,
-  }));
+  // Chain helpers. Each terminal resolution shifts the next queued select result.
+  const nextRows = () => pendingSelects.shift() ?? [];
+  const chainable = (): any => {
+    const node: any = {};
+    const thenFn = (resolve: (value: unknown[]) => unknown) =>
+      Promise.resolve(resolve(nextRows()));
+    node.where = vi.fn(() => {
+      const inner: any = { then: thenFn };
+      inner.orderBy = vi.fn(() => {
+        const orderNode: any = { then: thenFn };
+        orderNode.limit = vi.fn(() => ({ then: thenFn }));
+        return orderNode;
+      });
+      inner.limit = vi.fn(() => ({ then: thenFn }));
+      return inner;
+    });
+    node.orderBy = vi.fn(() => {
+      const orderNode: any = { then: thenFn };
+      orderNode.limit = vi.fn(() => ({ then: thenFn }));
+      return orderNode;
+    });
+    node.then = thenFn;
+    return node;
+  };
+  // Keep legacy references for tests that expect them.
+  const selectWhere = vi.fn(async () => nextRows());
+  const selectFrom = vi.fn(() => chainable());
   const select = vi.fn(() => ({
     from: selectFrom,
   }));
@@ -90,6 +109,7 @@ describe("budgetService", () => {
         status: "running",
         pauseReason: null,
       }],
+      [{ id: "ceo-agent-1" }],
     ]);
 
     dbStub.queueInsert([{

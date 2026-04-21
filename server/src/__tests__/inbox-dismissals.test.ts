@@ -127,6 +127,7 @@ describeEmbeddedPostgres("inbox dismissals", () => {
         type: "hire_agent",
         status: "pending",
         payload: {},
+        assigneeAgentId: primaryAgentId,
         updatedAt: new Date("2026-03-11T01:00:00.000Z"),
       },
       {
@@ -135,6 +136,7 @@ describeEmbeddedPostgres("inbox dismissals", () => {
         type: "hire_agent",
         status: "revision_requested",
         payload: {},
+        assigneeAgentId: primaryAgentId,
         updatedAt: new Date("2026-03-11T03:00:00.000Z"),
       },
     ]);

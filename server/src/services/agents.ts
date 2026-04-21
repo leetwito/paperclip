@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { and, desc, eq, gte, inArray, lt, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agents,
@@ -384,6 +384,31 @@ export function agentService(db: Db) {
     },
 
     getById,
+
+    findCEO: async (companyId: string) => {
+      const rows = await db
+        .select()
+        .from(agents)
+        .where(
+          and(
+            eq(agents.companyId, companyId),
+            eq(agents.role, "ceo"),
+            ne(agents.status, "terminated"),
+          ),
+        )
+        .orderBy(asc(agents.createdAt))
+        .limit(1);
+      const ceo = rows[0] ?? null;
+      if (ceo) return normalizeAgentRow(ceo);
+      // Fallback: oldest non-terminated agent for the company (matches migration backfill).
+      const fallbackRows = await db
+        .select()
+        .from(agents)
+        .where(and(eq(agents.companyId, companyId), ne(agents.status, "terminated")))
+        .orderBy(asc(agents.createdAt))
+        .limit(1);
+      return fallbackRows[0] ? normalizeAgentRow(fallbackRows[0]) : null;
+    },
 
     create: async (companyId: string, data: Omit<typeof agents.$inferInsert, "companyId">) => {
       if (data.reportsTo) {

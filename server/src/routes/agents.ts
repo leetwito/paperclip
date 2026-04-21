@@ -1362,10 +1362,15 @@ export function agentRoutes(db: Db) {
         redactEventPayload(
           ((normalizedHireInput.metadata ?? agent.metadata ?? {}) as Record<string, unknown>),
         ) ?? {};
+      const hireAssigneeCeo = await svc.findCEO(companyId);
+      const hireAssigneeAgentId =
+        hireAssigneeCeo?.id ??
+        (actor.actorType === "agent" ? (actor.actorId as string) : agent.id);
       approval = await approvalsSvc.create(companyId, {
         type: "hire_agent",
         requestedByAgentId: actor.actorType === "agent" ? actor.actorId : null,
         requestedByUserId: actor.actorType === "user" ? actor.actorId : null,
+        assigneeAgentId: hireAssigneeAgentId,
         status: "pending",
         payload: {
           name: normalizedHireInput.name,

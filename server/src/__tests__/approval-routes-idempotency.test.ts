@@ -203,6 +203,7 @@ describe("approval routes idempotent retries", () => {
       .post("/api/companies/company-1/approvals")
       .send({
         type: "request_board_approval",
+        assigneeAgentId: "00000000-0000-0000-0000-000000000002",
         issueIds: ["00000000-0000-0000-0000-000000000001"],
         payload: { title: "Approve hosting spend" },
       });
