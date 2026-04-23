@@ -3,6 +3,7 @@ import {
   CircleDot,
   Target,
   LayoutDashboard,
+  ShieldCheck,
   DollarSign,
   History,
   Search,
@@ -103,6 +104,7 @@ export function Sidebar() {
             <span className="truncate">New Issue</span>
           </button>
           <SidebarNavItem to="/dashboard" label="Dashboard" icon={LayoutDashboard} liveCount={liveRunCount} />
+          <SidebarNavItem to="/vp-dashboard" label="VP Dashboard" icon={ShieldCheck} />
           <SidebarNavItem
             to="/inbox"
             label="Inbox"
