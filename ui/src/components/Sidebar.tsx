@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   DollarSign,
   History,
-  Search,
   SquarePen,
   Network,
   Boxes,
@@ -22,7 +21,6 @@ import { useDialog } from "../context/DialogContext";
 import { useCompany } from "../context/CompanyContext";
 import { heartbeatsApi } from "../api/heartbeats";
 import { queryKeys } from "../lib/queryKeys";
-import { Button } from "@/components/ui/button";
 import { PluginSlotOutlet } from "@/plugins/slots";
 import { ActingAsSwitcher } from "./ActingAsSwitcher";
 import { authApi } from "../api/auth";
@@ -43,10 +41,6 @@ export function Sidebar() {
     retry: false,
   });
   const currentUserName = session?.user.name || session?.user.email || "You";
-
-  function openSearch() {
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
-  }
 
   const pluginContext = {
     companyId: selectedCompanyId,
@@ -92,14 +86,6 @@ export function Sidebar() {
         {selectedCompanyId && (
           <ActingAsSwitcher companyId={selectedCompanyId} userName={currentUserName} />
         )}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="text-muted-foreground shrink-0"
-          onClick={openSearch}
-        >
-          <Search className="h-4 w-4" />
-        </Button>
       </div>
 
       <nav className="flex-1 min-h-0 overflow-y-auto scrollbar-auto-hide flex flex-col gap-4 px-3 py-2">

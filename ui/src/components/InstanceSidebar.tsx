@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Clock3, Cpu, FlaskConical, Puzzle, Settings, SlidersHorizontal } from "lucide-react";
+import { Clock3, Cpu, FlaskConical, Moon, Puzzle, Settings, SlidersHorizontal, Sun } from "lucide-react";
 import { NavLink } from "@/lib/router";
 import { pluginsApi } from "@/api/plugins";
 import { queryKeys } from "@/lib/queryKeys";
 import { SIDEBAR_SCROLL_RESET_STATE } from "@/lib/navigation-scroll";
+import { useTheme } from "@/context/ThemeContext";
 import { SidebarNavItem } from "./SidebarNavItem";
 
 export function InstanceSidebar() {
@@ -11,6 +12,8 @@ export function InstanceSidebar() {
     queryKey: queryKeys.plugins.all,
     queryFn: () => pluginsApi.list(),
   });
+  const { theme, toggleTheme } = useTheme();
+  const ThemeIcon = theme === "dark" ? Sun : Moon;
 
   return (
     <aside className="w-60 h-full min-h-0 border-r border-border bg-background flex flex-col">
@@ -28,6 +31,15 @@ export function InstanceSidebar() {
           <SidebarNavItem to="/instance/settings/experimental" label="Experimental" icon={FlaskConical} />
           <SidebarNavItem to="/instance/settings/plugins" label="Plugins" icon={Puzzle} />
           <SidebarNavItem to="/instance/settings/adapters" label="Adapters" icon={Cpu} />
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium transition-colors text-foreground/80 hover:bg-accent/50 hover:text-foreground"
+          >
+            <ThemeIcon className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate text-left">Switch theme (light/dark)</span>
+          </button>
           {(plugins ?? []).length > 0 ? (
             <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l border-border/70 pl-3">
               {(plugins ?? []).map((plugin) => (
