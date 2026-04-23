@@ -1,4 +1,4 @@
-import type { Approval, ApprovalComment, Issue } from "@paperclipai/shared";
+import type { Approval, ApprovalComment, CreateApproval, Issue } from "@paperclipai/shared";
 import { api } from "./client";
 
 export const approvalsApi = {
@@ -6,7 +6,9 @@ export const approvalsApi = {
     api.get<Approval[]>(
       `/companies/${companyId}/approvals${status ? `?status=${encodeURIComponent(status)}` : ""}`,
     ),
-  create: (companyId: string, data: Record<string, unknown>) =>
+  // NOTE: `assigneeAgentId` is required by the server (Task 4). The `CreateApproval`
+  // type enforces it at the type level so UI callers can't forget to pass it.
+  create: (companyId: string, data: CreateApproval) =>
     api.post<Approval>(`/companies/${companyId}/approvals`, data),
   get: (id: string) => api.get<Approval>(`/approvals/${id}`),
   approve: (id: string, decisionNote?: string) =>
