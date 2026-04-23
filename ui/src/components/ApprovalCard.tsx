@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Identity } from "./Identity";
 import {
-  approvalSubject,
+  approvalClaimIdentifier,
+  approvalClaimsFirstTitle,
   typeIcon,
   defaultTypeIcon,
   ApprovalPayloadRenderer,
@@ -44,7 +45,8 @@ export function ApprovalCard({
   const payload = approval.payload as Record<string, unknown> | null;
   const Icon = typeIcon[approval.type] ?? defaultTypeIcon;
   const kindLabel = typeLabel[approval.type] ?? approval.type;
-  const subject = approvalSubject(payload);
+  const title = approvalClaimsFirstTitle(approval.type, payload);
+  const hasClaimIdentifier = Boolean(approvalClaimIdentifier(payload));
   const showResolutionButtons =
     Boolean(onApprove && onReject) &&
     approval.type !== "budget_override_required" &&
@@ -76,7 +78,7 @@ export function ApprovalCard({
               </div>
               <div className="space-y-1">
                 <h3 className="text-base font-semibold leading-6 text-foreground">
-                  {subject ?? kindLabel}
+                  {title}
                 </h3>
                 <p className="text-xs leading-5 text-muted-foreground">
                   Approval request created {timeAgo(approval.createdAt)}
@@ -97,7 +99,7 @@ export function ApprovalCard({
         <ApprovalPayloadRenderer
           type={approval.type}
           payload={approval.payload}
-          hidePrimaryTitle={Boolean(subject)}
+          hidePrimaryTitle={hasClaimIdentifier || Boolean(payload && typeof payload.title === "string" && payload.title.trim().length > 0)}
         />
       </div>
 

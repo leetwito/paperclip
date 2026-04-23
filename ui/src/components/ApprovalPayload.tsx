@@ -8,6 +8,17 @@ export const typeLabel: Record<string, string> = {
   request_board_approval: "Board Approval",
 };
 
+/**
+ * Short, claims-first phrase describing what the approval is asking.
+ * Used as the heading suffix after a claim identifier (e.g. "CLM-1257 — coverage call needed").
+ */
+export const typeHeading: Record<string, string> = {
+  hire_agent: "hire approval",
+  approve_ceo_strategy: "CEO strategy approval",
+  budget_override_required: "budget override",
+  request_board_approval: "board approval",
+};
+
 function firstNonEmptyString(...values: unknown[]): string | null {
   for (const value of values) {
     if (typeof value === "string" && value.trim().length > 0) {
@@ -17,13 +28,50 @@ function firstNonEmptyString(...values: unknown[]): string | null {
   return null;
 }
 
+export function approvalClaimIdentifier(payload?: Record<string, unknown> | null): string | null {
+  return firstNonEmptyString(payload?.claimIdentifier);
+}
+
 export function approvalSubject(payload?: Record<string, unknown> | null): string | null {
   return firstNonEmptyString(
+    payload?.question,
     payload?.title,
     payload?.name,
     payload?.summary,
     payload?.recommendedAction,
   );
+}
+
+/**
+ * Claims-first title for an approval card.
+ *
+ * - When the payload carries a `claimIdentifier`, leads with the claim code:
+ *   `"CLM-1257 — coverage call needed"`.
+ * - When it doesn't, falls back to a sensible non-agent-first phrasing:
+ *   - `hire_agent` → `"Hire — <name>"` (no claim context exists)
+ *   - everything else → the payload subject if present, otherwise the kind heading.
+ *
+ * Never leads with an AI agent name.
+ */
+export function approvalClaimsFirstTitle(
+  type: string,
+  payload?: Record<string, unknown> | null,
+): string {
+  const claimId = approvalClaimIdentifier(payload);
+  const subject = approvalSubject(payload);
+  const kindHeading = typeHeading[type] ?? typeLabel[type] ?? type;
+
+  if (claimId) {
+    const suffix = subject ?? kindHeading;
+    return `${claimId} — ${suffix}`;
+  }
+
+  if (type === "hire_agent") {
+    const name = firstNonEmptyString(payload?.name);
+    return name ? `Hire — ${name}` : "Hire approval";
+  }
+
+  return subject ?? kindHeading;
 }
 
 /** Build a contextual label for an approval, e.g. "Hire Agent: Designer" */
@@ -170,9 +218,14 @@ function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unkn
     : [];
   const title = firstNonEmptyString(payload.title);
   const summary = firstNonEmptyString(payload.summary);
-  const recommendedAction = firstNonEmptyString(payload.recommendedAction);
+  const question = firstNonEmptyString(payload.question);
+  // New claims-first payload carries `recommendation` + `rationale`.
+  // Legacy payloads used `recommendedAction`; render either under a single
+  // "Recommendation" label — never "Proposal".
+  const recommendation = firstNonEmptyString(payload.recommendation, payload.recommendedAction);
+  const rationale = firstNonEmptyString(payload.rationale);
   const nextActionOnApproval = firstNonEmptyString(payload.nextActionOnApproval);
-  const proposedComment = firstNonEmptyString(payload.proposedComment);
+  const recommendedComment = firstNonEmptyString(payload.recommendedComment, payload.proposedComment);
 
   return (
     <div className="mt-4 space-y-3.5 text-sm">
@@ -182,18 +235,30 @@ function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unkn
           <p className="font-medium leading-6 text-foreground">{title}</p>
         </div>
       )}
+      {question && (
+        <div className="space-y-1">
+          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Question</p>
+          <p className="leading-6 text-foreground/90">{question}</p>
+        </div>
+      )}
       {summary && (
         <div className="space-y-1">
           <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Summary</p>
           <p className="leading-6 text-foreground/90">{summary}</p>
         </div>
       )}
-      {recommendedAction && (
+      {recommendation && (
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-amber-700 dark:text-amber-300">
-            Recommended action
+            Recommendation
           </p>
-          <p className="mt-1 leading-6 text-foreground">{recommendedAction}</p>
+          <p className="mt-1 leading-6 text-foreground">{recommendation}</p>
+        </div>
+      )}
+      {rationale && (
+        <div className="space-y-1">
+          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Rationale</p>
+          <p className="leading-6 text-foreground/90">{rationale}</p>
         </div>
       )}
       {nextActionOnApproval && (
@@ -215,13 +280,13 @@ function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unkn
           </ul>
         </div>
       )}
-      {proposedComment && (
+      {recommendedComment && (
         <div className="space-y-1.5">
           <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-            Proposed comment
+            Recommended comment
           </p>
           <pre className="max-h-48 overflow-auto rounded-lg border border-border/60 bg-muted/50 px-3.5 py-3 font-mono text-xs leading-5 text-muted-foreground whitespace-pre-wrap">
-            {proposedComment}
+            {recommendedComment}
           </pre>
         </div>
       )}
