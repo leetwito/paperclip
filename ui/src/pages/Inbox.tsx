@@ -1,5 +1,5 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "@/lib/router";
+import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { INBOX_MINE_ISSUE_STATUS_FILTER } from "@paperclipai/shared";
 import { approvalsApi } from "../api/approvals";
@@ -94,6 +94,7 @@ import {
   ACTIONABLE_APPROVAL_STATUSES,
   DEFAULT_INBOX_ISSUE_COLUMNS,
   buildInboxNesting,
+  filterInboxWorkItemsByPersona,
   getAvailableInboxIssueColumns,
   getApprovalsForTab,
   getArchivedInboxSearchIssues,
@@ -655,6 +656,7 @@ export function Inbox() {
   const { readItems, markRead: markItemRead, markUnread: markItemUnread } = useReadInboxItems();
   const { allCategoryFilter, allApprovalFilter, issueFilters } = filterPreferences;
 
+  const { humanAgentId } = useParams<{ humanAgentId?: string }>();
   const pathSegment = location.pathname.split("/").pop() ?? "mine";
   const tab: InboxTab =
     pathSegment === "mine" || pathSegment === "recent" || pathSegment === "all" || pathSegment === "unread" || pathSegment === "assigned"
@@ -701,9 +703,15 @@ export function Inbox() {
     enabled: !!selectedCompanyId && isolatedWorkspacesEnabled,
   });
 
+  const personaAgent = useMemo(
+    () => (humanAgentId ? agents?.find((agent) => agent.id === humanAgentId) ?? null : null),
+    [agents, humanAgentId],
+  );
+  const pageTitle = personaAgent ? `${personaAgent.name}'s Inbox` : "Inbox";
+
   useEffect(() => {
-    setBreadcrumbs([{ label: "Inbox" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: pageTitle }]);
+  }, [setBreadcrumbs, pageTitle]);
 
   useEffect(() => {
     saveLastInboxTab(tab);
@@ -957,13 +965,16 @@ export function Inbox() {
 
   const workItemsToRender = useMemo(
     () =>
-      getInboxWorkItems({
-        issues: tab === "all" && !showTouchedCategory ? [] : issuesToRender,
-        approvals: tab === "all" && !showApprovalsCategory ? [] : approvalsToRender,
-        failedRuns: failedRunsForTab,
-        joinRequests: joinRequestsForTab,
-      }),
-    [approvalsToRender, issuesToRender, showApprovalsCategory, showTouchedCategory, tab, failedRunsForTab, joinRequestsForTab],
+      filterInboxWorkItemsByPersona(
+        getInboxWorkItems({
+          issues: tab === "all" && !showTouchedCategory ? [] : issuesToRender,
+          approvals: tab === "all" && !showApprovalsCategory ? [] : approvalsToRender,
+          failedRuns: failedRunsForTab,
+          joinRequests: joinRequestsForTab,
+        }),
+        humanAgentId,
+      ),
+    [approvalsToRender, issuesToRender, showApprovalsCategory, showTouchedCategory, tab, failedRunsForTab, joinRequestsForTab, humanAgentId],
   );
 
   const filteredWorkItems = useMemo(() => {
@@ -1921,6 +1932,8 @@ export function Inbox() {
           message={
             searchQuery.trim()
               ? "No inbox items match your search."
+              : humanAgentId
+              ? `${pageTitle} has no pending items.`
               : tab === "mine"
               ? "Inbox zero."
               : tab === "assigned"

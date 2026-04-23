@@ -3,9 +3,13 @@
 import { act } from "react";
 import type { ComponentProps } from "react";
 import { createRoot } from "react-dom/client";
-import type { Issue } from "@paperclipai/shared";
+import type { Approval, Issue } from "@paperclipai/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FailedRunInboxRow, InboxIssueMetaLeading, InboxIssueTrailingColumns } from "./Inbox";
+import {
+  filterInboxWorkItemsByPersona,
+  getInboxWorkItems,
+} from "@/lib/inbox";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ children, className, ...props }: ComponentProps<"a">) => (
@@ -243,5 +247,71 @@ describe("InboxIssueTrailingColumns", () => {
     act(() => {
       root.unmount();
     });
+  });
+});
+
+function createApproval(overrides: Partial<Approval> = {}): Approval {
+  return {
+    id: "approval-1",
+    companyId: "company-1",
+    type: "hire_agent",
+    requestedByAgentId: null,
+    requestedByUserId: null,
+    assigneeAgentId: "h-1",
+    status: "pending",
+    payload: {},
+    decisionNote: null,
+    decidedByUserId: null,
+    decidedAt: null,
+    createdAt: new Date("2026-03-11T00:00:00.000Z"),
+    updatedAt: new Date("2026-03-11T00:00:00.000Z"),
+    ...overrides,
+  };
+}
+
+describe("Inbox persona filter (/inbox/:humanAgentId)", () => {
+  it("keeps only approvals whose assigneeAgentId matches the persona", () => {
+    const approvalForH1 = createApproval({ id: "approval-h1", assigneeAgentId: "h-1" });
+    const approvalForH2 = createApproval({ id: "approval-h2", assigneeAgentId: "h-2" });
+    const workItems = getInboxWorkItems({
+      issues: [],
+      approvals: [approvalForH1, approvalForH2],
+    });
+
+    const filtered = filterInboxWorkItemsByPersona(workItems, "h-1");
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].kind).toBe("approval");
+    if (filtered[0].kind === "approval") {
+      expect(filtered[0].approval.id).toBe("approval-h1");
+      expect(filtered[0].approval.assigneeAgentId).toBe("h-1");
+    }
+  });
+
+  it("keeps issues whose assigneeAgentId matches the persona and drops others", () => {
+    const issueForH1 = createIssue({ id: "issue-h1", assigneeAgentId: "h-1" });
+    const issueForH2 = createIssue({ id: "issue-h2", assigneeAgentId: "h-2" });
+    const workItems = getInboxWorkItems({
+      issues: [issueForH1, issueForH2],
+      approvals: [],
+    });
+
+    const filtered = filterInboxWorkItemsByPersona(workItems, "h-1");
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].kind).toBe("issue");
+    if (filtered[0].kind === "issue") {
+      expect(filtered[0].issue.id).toBe("issue-h1");
+    }
+  });
+
+  it("returns the input unchanged when humanAgentId is null/undefined", () => {
+    const items = getInboxWorkItems({
+      issues: [createIssue({ id: "issue-a", assigneeAgentId: "h-1" })],
+      approvals: [createApproval({ id: "approval-a", assigneeAgentId: "h-2" })],
+    });
+
+    expect(filterInboxWorkItemsByPersona(items, null)).toBe(items);
+    expect(filterInboxWorkItemsByPersona(items, undefined)).toBe(items);
   });
 });

@@ -625,6 +625,26 @@ export function getInboxWorkItems({
   });
 }
 
+/**
+ * Restrict inbox work items to those assigned to a specific human persona agent.
+ *
+ * Only `approval` and `issue` items carry an `assigneeAgentId`; `failed_run`
+ * and `join_request` items are excluded from persona-scoped inboxes.
+ *
+ * If `humanAgentId` is `null`/`undefined`, the input list is returned unchanged.
+ */
+export function filterInboxWorkItemsByPersona(
+  items: InboxWorkItem[],
+  humanAgentId: string | null | undefined,
+): InboxWorkItem[] {
+  if (!humanAgentId) return items;
+  return items.filter((item) => {
+    if (item.kind === "approval") return item.approval.assigneeAgentId === humanAgentId;
+    if (item.kind === "issue") return item.issue.assigneeAgentId === humanAgentId;
+    return false;
+  });
+}
+
 const inboxWorkItemKindOrder: InboxWorkItem["kind"][] = [
   "issue",
   "approval",
