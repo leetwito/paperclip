@@ -21,6 +21,8 @@ import { AutonomyDistribution } from "../components/AutonomyDistribution";
 import { Bottlenecks } from "../components/Bottlenecks";
 import { NorthStarMetrics } from "../components/NorthStarMetrics";
 import { Reserves } from "../components/Reserves";
+import { RegulatorySLAs } from "../components/RegulatorySLAs";
+import { AgentPerformance } from "../components/AgentPerformance";
 
 export function ClaimsDashboard() {
   const { selectedCompanyId, companies } = useCompany();
@@ -194,6 +196,10 @@ export function ClaimsDashboard() {
           <Bottlenecks />
 
           <Reserves />
+
+          <RegulatorySLAs />
+
+          <AgentPerformance />
 
           <AutonomyDistribution />
 
