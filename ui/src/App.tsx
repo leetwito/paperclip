@@ -48,6 +48,7 @@ import { InviteLandingPage } from "./pages/InviteLanding";
 import { NotFoundPage } from "./pages/NotFound";
 import { queryKeys } from "./lib/queryKeys";
 import { useCompany } from "./context/CompanyContext";
+import { ActingAsProvider } from "./context/ActingAsContext";
 import { useDialog } from "./context/DialogContext";
 import { loadLastInboxTab } from "./lib/inbox";
 import { shouldRedirectCompanylessRouteToOnboarding } from "./lib/onboarding-route";
@@ -292,6 +293,18 @@ function UnprefixedBoardRedirect() {
   );
 }
 
+function LayoutWithActingAs() {
+  const { selectedCompanyId } = useCompany();
+  if (!selectedCompanyId) {
+    return <Layout />;
+  }
+  return (
+    <ActingAsProvider companyId={selectedCompanyId}>
+      <Layout />
+    </ActingAsProvider>
+  );
+}
+
 function NoCompaniesStartPage() {
   const { openOnboarding } = useDialog();
 
@@ -358,7 +371,7 @@ export function App() {
           <Route path="execution-workspaces/:workspaceId/issues" element={<UnprefixedBoardRedirect />} />
           <Route path="tests/ux/chat" element={<UnprefixedBoardRedirect />} />
           <Route path="tests/ux/runs" element={<UnprefixedBoardRedirect />} />
-          <Route path=":companyPrefix" element={<Layout />}>
+          <Route path=":companyPrefix" element={<LayoutWithActingAs />}>
             {boardRoutes()}
           </Route>
           <Route path="*" element={<NotFoundPage scope="global" />} />

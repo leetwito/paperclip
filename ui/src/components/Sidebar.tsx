@@ -25,6 +25,8 @@ import { queryKeys } from "../lib/queryKeys";
 import { useInboxBadge } from "../hooks/useInboxBadge";
 import { Button } from "@/components/ui/button";
 import { PluginSlotOutlet } from "@/plugins/slots";
+import { ActingAsSwitcher } from "./ActingAsSwitcher";
+import { authApi } from "../api/auth";
 
 export function Sidebar() {
   const { openNewIssue } = useDialog();
@@ -37,6 +39,12 @@ export function Sidebar() {
     refetchInterval: 10_000,
   });
   const liveRunCount = liveRuns?.length ?? 0;
+  const { data: session } = useQuery({
+    queryKey: queryKeys.auth.session,
+    queryFn: () => authApi.getSession(),
+    retry: false,
+  });
+  const currentUserName = session?.user.name || session?.user.email || "You";
 
   function openSearch() {
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
@@ -83,6 +91,9 @@ export function Sidebar() {
             </>
           );
         })()}
+        {selectedCompanyId && (
+          <ActingAsSwitcher companyId={selectedCompanyId} userName={currentUserName} />
+        )}
         <Button
           variant="ghost"
           size="icon-sm"

@@ -73,7 +73,12 @@ function agentPath(id: string, companyId?: string, suffix = "") {
 }
 
 export const agentsApi = {
-  list: (companyId: string) => api.get<Agent[]>(`/companies/${companyId}/agents`),
+  list: (companyId: string, opts?: { kind?: "ai" | "human" }) => {
+    const params = new URLSearchParams();
+    if (opts?.kind) params.set("kind", opts.kind);
+    const qs = params.toString();
+    return api.get<Agent[]>(`/companies/${companyId}/agents${qs ? `?${qs}` : ""}`);
+  },
   org: (companyId: string) => api.get<OrgNode[]>(`/companies/${companyId}/org`),
   listConfigurations: (companyId: string) =>
     api.get<Record<string, unknown>[]>(`/companies/${companyId}/agent-configurations`),

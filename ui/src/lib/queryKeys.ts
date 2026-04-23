@@ -14,6 +14,7 @@ export const queryKeys = {
   },
   agents: {
     list: (companyId: string) => ["agents", companyId] as const,
+    humanAgents: (companyId: string) => ["agents", companyId, "human"] as const,
     detail: (id: string) => ["agents", "detail", id] as const,
     runtimeState: (id: string) => ["agents", "runtime-state", id] as const,
     taskSessions: (id: string) => ["agents", "task-sessions", id] as const,
