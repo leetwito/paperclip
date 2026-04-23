@@ -37,6 +37,7 @@ import {
   Target,
   Telescope,
   Terminal,
+  User,
   Wand2,
   Wrench,
   Zap,
@@ -46,6 +47,7 @@ import { AGENT_ICON_NAMES, type AgentIconName } from "@paperclipai/shared";
 
 export const AGENT_ICONS: Record<AgentIconName, LucideIcon> = {
   bot: Bot,
+  user: User,
   cpu: Cpu,
   brain: Brain,
   zap: Zap,
@@ -95,4 +97,28 @@ export function getAgentIcon(iconName: string | null | undefined): LucideIcon {
     return AGENT_ICONS[iconName as AgentIconName];
   }
   return AGENT_ICONS[DEFAULT_ICON];
+}
+
+type AgentIconContext = {
+  icon?: string | null;
+  kind?: string | null;
+  name?: string | null;
+};
+
+type AgentIconRule = {
+  match: (ctx: AgentIconContext) => boolean;
+  icon: AgentIconName;
+};
+
+export const AGENT_ICON_RULES: AgentIconRule[] = [
+  { match: (a) => a.name === "ClaimCreator", icon: "wrench" },
+  { match: (a) => a.kind === "human", icon: "user" },
+  { match: (a) => a.kind === "ai", icon: "bot" },
+];
+
+export function resolveAgentIconName(ctx: AgentIconContext): string {
+  for (const rule of AGENT_ICON_RULES) {
+    if (rule.match(ctx)) return rule.icon;
+  }
+  return ctx.icon ?? DEFAULT_ICON;
 }

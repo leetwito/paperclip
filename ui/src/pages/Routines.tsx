@@ -227,7 +227,7 @@ function RoutineListRow({
             <span>{routine.projectId ? (project?.name ?? "Unknown project") : "No project"}</span>
           </span>
           <span className="flex items-center gap-2">
-            {agent?.icon ? <AgentIcon icon={agent.icon} className="h-3.5 w-3.5 shrink-0" /> : null}
+            {agent?.icon ? <AgentIcon agent={agent} className="h-3.5 w-3.5 shrink-0" /> : null}
             <span>{routine.assigneeAgentId ? (agent?.name ?? "Unknown agent") : "No default agent"}</span>
           </span>
           <span>
@@ -735,7 +735,7 @@ export function Routines() {
                       option ? (
                         currentAssignee ? (
                           <>
-                            <AgentIcon icon={currentAssignee.icon} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            <AgentIcon agent={currentAssignee} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                             <span className="truncate">{option.label}</span>
                           </>
                         ) : (
@@ -750,7 +750,7 @@ export function Routines() {
                       const assignee = agentById.get(option.id);
                       return (
                         <>
-                          {assignee ? <AgentIcon icon={assignee.icon} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> : null}
+                          {assignee ? <AgentIcon agent={assignee} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> : null}
                           <span className="truncate">{option.label}</span>
                         </>
                       );

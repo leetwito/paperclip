@@ -77,6 +77,7 @@ export const AGENT_ROLE_LABELS: Record<AgentRole, string> = {
 
 export const AGENT_ICON_NAMES = [
   "bot",
+  "user",
   "cpu",
   "brain",
   "zap",

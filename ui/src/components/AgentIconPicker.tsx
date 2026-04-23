@@ -10,17 +10,27 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { AGENT_ICONS, getAgentIcon } from "../lib/agent-icons";
+import { AGENT_ICONS, getAgentIcon, resolveAgentIconName } from "../lib/agent-icons";
 
 const DEFAULT_ICON: AgentIconName = "bot";
 
+interface AgentIconAgentShape {
+  icon?: string | null;
+  kind?: string | null;
+  name?: string | null;
+}
+
 interface AgentIconProps {
-  icon: string | null | undefined;
+  agent?: AgentIconAgentShape | null;
+  icon?: string | null;
   className?: string;
 }
 
-export function AgentIcon({ icon, className }: AgentIconProps) {
-  const Icon = getAgentIcon(icon);
+export function AgentIcon({ agent, icon, className }: AgentIconProps) {
+  const resolved = agent
+    ? resolveAgentIconName({ icon: agent.icon, kind: agent.kind, name: agent.name })
+    : resolveAgentIconName({ icon });
+  const Icon = getAgentIcon(resolved);
   return <Icon className={className} />;
 }
 

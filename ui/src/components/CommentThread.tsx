@@ -961,7 +961,7 @@ export function CommentThread({
                   return (
                     <>
                       {agent ? (
-                        <AgentIcon icon={agent.icon} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <AgentIcon agent={agent} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       ) : null}
                       <span className="truncate">{option.label}</span>
                     </>
@@ -974,7 +974,7 @@ export function CommentThread({
                   return (
                     <>
                       {agent ? (
-                        <AgentIcon icon={agent.icon} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <AgentIcon agent={agent} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       ) : null}
                       <span className="truncate">{option.label}</span>
                     </>
