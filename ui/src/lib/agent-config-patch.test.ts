@@ -10,6 +10,7 @@ function makeAgent(): Agent {
     companyId: "company-1",
     name: "Agent",
     role: "engineer",
+    kind: "ai",
     title: "Engineer",
     icon: null,
     status: "active",

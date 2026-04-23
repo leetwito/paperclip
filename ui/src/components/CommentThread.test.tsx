@@ -96,6 +96,7 @@ describe("CommentThread", () => {
       name: "CodexCoder",
       urlKey: "codexcoder",
       role: "engineer",
+      kind: "ai",
       title: null,
       icon: "code",
       status: "active",
@@ -186,6 +187,7 @@ describe("CommentThread", () => {
       name: "CodexCoder",
       urlKey: "codexcoder",
       role: "engineer",
+      kind: "ai",
       title: null,
       icon: "code",
       status: "active",
@@ -210,6 +212,7 @@ describe("CommentThread", () => {
       type: "request_board_approval",
       requestedByAgentId: "agent-1",
       requestedByUserId: null,
+      assigneeAgentId: "agent-1",
       status: "pending",
       payload: {
         title: "Approve hosting spend",

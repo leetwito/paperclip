@@ -67,6 +67,7 @@ function makeApproval(status: Approval["status"]): Approval {
     type: "hire_agent",
     requestedByAgentId: null,
     requestedByUserId: null,
+    assigneeAgentId: "agent-1",
     status,
     payload: {},
     decisionNote: null,

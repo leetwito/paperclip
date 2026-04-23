@@ -22,6 +22,7 @@ function createAgent(
     name,
     urlKey,
     role: "engineer",
+    kind: "ai",
     title: null,
     icon,
     status: "active",
