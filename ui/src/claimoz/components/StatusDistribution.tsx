@@ -1,10 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { ClaimStatusBucket } from "../lib/claimMapper";
-import { MOCK_COHORT, MOCK_STATUS_COUNTS } from "../lib/mockData";
+import { useDashboardData } from "../lib/useDashboardData";
 
-// Status colors map to Paperclip's existing status semantics where possible:
-// Running ≈ in_progress (indigo), NOL ≈ todo (blue), Waiting for Input ≈ idle
-// (amber), Awaiting Data ≈ neutral/parked.
 const STATUS_STYLES: Record<
   Exclude<ClaimStatusBucket, "Done">,
   { label: string; swatchClass: string }
@@ -16,7 +13,8 @@ const STATUS_STYLES: Record<
 };
 
 export function StatusDistribution() {
-  const total = MOCK_STATUS_COUNTS.reduce((sum, x) => sum + x.count, 0);
+  const { statusDistribution } = useDashboardData();
+  const { cohort, buckets } = statusDistribution;
 
   return (
     <section className="space-y-3">
@@ -25,15 +23,14 @@ export function StatusDistribution() {
           Claim Status Distribution
         </h2>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {total} claims in cohort · {MOCK_COHORT.filedStart} — {MOCK_COHORT.filedEnd}
+          {cohort.total} claims in cohort · {cohort.filedStart} — {cohort.filedEnd}
         </p>
       </header>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-1 sm:gap-2">
-        {MOCK_STATUS_COUNTS.map(({ status, count }) => {
+        {buckets.map(({ status, count, pct }) => {
           const styles = STATUS_STYLES[status as Exclude<ClaimStatusBucket, "Done">];
           if (!styles) return null;
-          const pct = Math.round((count / total) * 100);
           return (
             <div
               key={status}
@@ -65,16 +62,15 @@ export function StatusDistribution() {
         role="img"
         aria-label="Claim status distribution"
       >
-        {MOCK_STATUS_COUNTS.map(({ status, count }) => {
+        {buckets.map(({ status, pct }) => {
           const styles = STATUS_STYLES[status as Exclude<ClaimStatusBucket, "Done">];
           if (!styles) return null;
-          const pct = (count / total) * 100;
           return (
             <div
               key={status}
               className={styles.swatchClass}
               style={{ width: `${pct}%` }}
-              title={`${status}: ${count} (${Math.round(pct)}%)`}
+              title={`${status}: ${pct}%`}
             />
           );
         })}

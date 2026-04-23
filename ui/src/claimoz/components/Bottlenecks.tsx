@@ -1,11 +1,10 @@
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
-import { MOCK_BOTTLENECKS } from "../lib/mockData";
+import { useDashboardData } from "../lib/useDashboardData";
 
-// §5 Bottlenecks — v1 ships count-only (no root-cause reasoning block yet).
-// The 2×2 grid is intentional: a VP should see where the system is stuck
-// without reading long prose, with the SLA-at-risk count as the urgency cue.
 export function Bottlenecks() {
+  const { bottlenecks } = useDashboardData();
+
   return (
     <section className="space-y-3">
       <header>
@@ -18,7 +17,7 @@ export function Bottlenecks() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-2">
-        {MOCK_BOTTLENECKS.map((b) => (
+        {bottlenecks.items.map((b) => (
           <div
             key={b.category}
             className="h-full px-4 py-4 sm:px-5 sm:py-5 rounded-lg border border-border"

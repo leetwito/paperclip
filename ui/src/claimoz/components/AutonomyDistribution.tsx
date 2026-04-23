@@ -1,12 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { TouchBucket } from "../lib/claimMapper";
-import { MOCK_AUTONOMY, MOCK_COHORT } from "../lib/mockData";
+import { useDashboardData } from "../lib/useDashboardData";
 
-// Touch-count distribution — per v1 guidelines, the honest autonomy signal is
-// the *breakdown* (78/14/6/2), not a single "78% STP" number. 0-touch is the
-// agent's win; each additional human touch raises operational cost.
-// Colors follow the guideline: green = AI, escalating amber/orange/red as
-// human involvement grows.
 const BUCKET_STYLES: Record<
   string,
   { label: string; barClass: string; subtitle: string }
@@ -22,7 +17,10 @@ function bucketKey(t: TouchBucket): string {
 }
 
 export function AutonomyDistribution() {
-  const total = MOCK_AUTONOMY.reduce((sum, x) => sum + x.rate, 0);
+  const { autonomy } = useDashboardData();
+  const { doneClaims, buckets } = autonomy;
+  const total = buckets.reduce((sum, x) => sum + x.rate, 0);
+
   return (
     <section className="space-y-3">
       <header>
@@ -30,7 +28,7 @@ export function AutonomyDistribution() {
           Autonomy Distribution
         </h2>
         <p className="text-xs text-muted-foreground/70 mt-0.5">
-          {MOCK_COHORT.doneClaims} done claims · share resolved by touch count
+          {doneClaims} done claims · share resolved by touch count
         </p>
       </header>
 
@@ -39,7 +37,7 @@ export function AutonomyDistribution() {
         role="img"
         aria-label="Autonomy touch-count distribution"
       >
-        {MOCK_AUTONOMY.map(({ touches, rate }) => {
+        {buckets.map(({ touches, rate }) => {
           const styles = BUCKET_STYLES[bucketKey(touches)];
           if (!styles) return null;
           return (
@@ -59,7 +57,7 @@ export function AutonomyDistribution() {
       </div>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-1 sm:gap-2">
-        {MOCK_AUTONOMY.map(({ touches, rate }) => {
+        {buckets.map(({ touches, rate }) => {
           const styles = BUCKET_STYLES[bucketKey(touches)];
           if (!styles) return null;
           return (

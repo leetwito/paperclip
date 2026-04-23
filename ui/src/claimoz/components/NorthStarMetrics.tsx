@@ -1,10 +1,7 @@
 import { cn } from "@/lib/utils";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
-import { MOCK_NORTH_STAR } from "../lib/mockData";
+import { useDashboardData } from "../lib/useDashboardData";
 
-// §1 North Star — STP is live-derivable later; CSAT and Accuracy come from
-// systems we don't yet have (surveys, adjudicator review sample). For v1 demo
-// they are mocked constants per the guidelines' canonical values.
 interface KpiProps {
   value: string;
   label: string;
@@ -41,7 +38,7 @@ function Kpi({ value, label, trend, delta, subtitle }: KpiProps) {
 }
 
 export function NorthStarMetrics() {
-  const m = MOCK_NORTH_STAR;
+  const { northStar: m } = useDashboardData();
   return (
     <section className="space-y-3">
       <header>
