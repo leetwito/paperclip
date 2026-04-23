@@ -53,7 +53,7 @@ import { SwipeToArchive } from "../components/SwipeToArchive";
 import { StatusIcon } from "../components/StatusIcon";
 import { cn } from "../lib/utils";
 import { StatusBadge } from "../components/StatusBadge";
-import { approvalLabel, defaultTypeIcon, typeIcon } from "../components/ApprovalPayload";
+import { approvalClaimsFirstTitle, approvalLabel, defaultTypeIcon, typeIcon } from "../components/ApprovalPayload";
 import { timeAgo } from "../lib/timeAgo";
 import { Button } from "@/components/ui/button";
 import {
@@ -360,7 +360,7 @@ export function FailedRunInboxRow({
   );
 }
 
-function ApprovalInboxRow({
+export function ApprovalInboxRow({
   approval,
   requesterName,
   onApprove,
@@ -386,7 +386,10 @@ function ApprovalInboxRow({
   className?: string;
 }) {
   const Icon = typeIcon[approval.type] ?? defaultTypeIcon;
-  const label = approvalLabel(approval.type, approval.payload as Record<string, unknown> | null);
+  const label = approvalClaimsFirstTitle(
+    approval.type,
+    approval.payload as Record<string, unknown> | null,
+  );
   const showResolutionButtons =
     approval.type !== "budget_override_required" &&
     ACTIONABLE_APPROVAL_STATUSES.has(approval.status);

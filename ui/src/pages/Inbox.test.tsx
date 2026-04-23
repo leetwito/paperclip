@@ -5,7 +5,7 @@ import type { ComponentProps } from "react";
 import { createRoot } from "react-dom/client";
 import type { Approval, Issue } from "@paperclipai/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { FailedRunInboxRow, InboxIssueMetaLeading, InboxIssueTrailingColumns } from "./Inbox";
+import { ApprovalInboxRow, FailedRunInboxRow, InboxIssueMetaLeading, InboxIssueTrailingColumns } from "./Inbox";
 import {
   filterInboxWorkItemsByPersona,
   getInboxWorkItems,
@@ -268,6 +268,84 @@ function createApproval(overrides: Partial<Approval> = {}): Approval {
     ...overrides,
   };
 }
+
+describe("ApprovalInboxRow", () => {
+  let container: HTMLDivElement;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    container.remove();
+  });
+
+  it("renders claims-first title when payload has claimIdentifier", () => {
+    const root = createRoot(container);
+    const approval = createApproval({
+      type: "approve_ceo_strategy",
+      payload: {
+        claimIdentifier: "CLM-PHASE1-E2E",
+        question: "Approve $3,200 DV on CLM-PHASE1-E2E?",
+      },
+    });
+
+    act(() => {
+      root.render(
+        <ApprovalInboxRow
+          approval={approval}
+          requesterName="Adjudicator"
+          onApprove={() => {}}
+          onReject={() => {}}
+          isPending={false}
+        />,
+      );
+    });
+
+    const titleNode = container.querySelector(".font-medium");
+    expect(titleNode).not.toBeNull();
+    const titleText = titleNode?.textContent ?? "";
+    // Must lead with the claim identifier, not the approval type.
+    expect(titleText.startsWith("CLM-PHASE1-E2E")).toBe(true);
+    expect(titleText.startsWith("CEO Strategy")).toBe(false);
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
+  it("falls back sensibly for hire_agent approvals without a claimIdentifier", () => {
+    const root = createRoot(container);
+    const approval = createApproval({
+      type: "hire_agent",
+      payload: { name: "Designer" },
+    });
+
+    act(() => {
+      root.render(
+        <ApprovalInboxRow
+          approval={approval}
+          requesterName={null}
+          onApprove={() => {}}
+          onReject={() => {}}
+          isPending={false}
+        />,
+      );
+    });
+
+    const titleNode = container.querySelector(".font-medium");
+    expect(titleNode).not.toBeNull();
+    const titleText = titleNode?.textContent ?? "";
+    // Non-agent-first; not blank.
+    expect(titleText.length).toBeGreaterThan(0);
+    expect(titleText).toContain("Designer");
+
+    act(() => {
+      root.unmount();
+    });
+  });
+});
 
 describe("Inbox persona filter (/inbox/:humanAgentId)", () => {
   it("keeps only approvals whose assigneeAgentId matches the persona", () => {
