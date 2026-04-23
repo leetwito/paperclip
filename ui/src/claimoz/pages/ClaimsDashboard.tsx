@@ -20,6 +20,7 @@ import { StatusDistribution } from "../components/StatusDistribution";
 import { AutonomyDistribution } from "../components/AutonomyDistribution";
 import { Bottlenecks } from "../components/Bottlenecks";
 import { NorthStarMetrics } from "../components/NorthStarMetrics";
+import { Reserves } from "../components/Reserves";
 
 export function ClaimsDashboard() {
   const { selectedCompanyId, companies } = useCompany();
@@ -191,6 +192,8 @@ export function ClaimsDashboard() {
           <StatusDistribution />
 
           <Bottlenecks />
+
+          <Reserves />
 
           <AutonomyDistribution />
 
