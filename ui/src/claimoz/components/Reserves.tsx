@@ -93,7 +93,7 @@ export function Reserves() {
                 <Tooltip
                   contentStyle={{ background: "rgba(15,17,25,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, fontSize: 12 }}
                   labelStyle={{ color: "#94a3b8" }}
-                  formatter={(v: number) => formatUSDK(v)}
+                  formatter={((v: number) => formatUSDK(v)) as never}
                 />
                 <Area
                   type="monotone"

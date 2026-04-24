@@ -23,6 +23,9 @@ import { NorthStarMetrics } from "../components/NorthStarMetrics";
 import { Reserves } from "../components/Reserves";
 import { RegulatorySLAs } from "../components/RegulatorySLAs";
 import { AgentPerformance } from "../components/AgentPerformance";
+import { CSAT } from "../components/CSAT";
+import { AIAcceptance } from "../components/AIAcceptance";
+import { DecisionConsistency } from "../components/DecisionConsistency";
 
 export function ClaimsDashboard() {
   const { selectedCompanyId, companies } = useCompany();
@@ -202,6 +205,12 @@ export function ClaimsDashboard() {
           <AgentPerformance />
 
           <AutonomyDistribution />
+
+          <CSAT />
+
+          <AIAcceptance />
+
+          <DecisionConsistency />
 
           {recentActivity.length > 0 && (
             <section className="space-y-3">
